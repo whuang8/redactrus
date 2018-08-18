@@ -19,7 +19,10 @@ matrix:
 install:
     - go get golang.org/x/tools/cmd/cover
     - go get github.com/mattn/goveralls
+    - go get github.com/sirupsen/logrus
+    - go get github.com/stretchr/testify/assert
 
 script:
-  - go test -v -race -covermode=count -coverprofile=coverage.out ./...  # Run all the tests with the race detector enabled
+  - touch coverage.out
+  - go test -v -race -covermode=atomic -coverprofile=coverage.out ./...  # Run all the tests with the race detector enabled
   - $HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
