@@ -1,23 +1,22 @@
 package redactrus
 
 import (
-	"github.com/Sirupsen/logrus"
-)
+	"reflect"
+	"regexp"
 
-// Replacement holds the definitions of what to redact.
-// Key: A string or pattern to redact
-// Value: The text used to redact the key
-type Replacements map[string]string
+	"github.com/sirupsen/logrus"
+)
 
 // Hook is a logrus hook for redacting information from logs
 type Hook struct {
 	// Messages with a log level not contained in this array
 	// will not be dispatched. If empty, all messages will be dispatched.
 	AcceptedLevels []logrus.Level
-	Replacements   Replacements
+	RedactionList  []string
 }
 
-// Levels ...
+// Levels returns the user defined AcceptedLevels
+// If AcceptedLevels is empty, all logrus levels are returned
 func (h *Hook) Levels() []logrus.Level {
 	if len(h.AcceptedLevels) == 0 {
 		return logrus.AllLevels
@@ -35,8 +34,25 @@ func LevelThreshold(l logrus.Level) []logrus.Level {
 	return logrus.AllLevels[:l+1]
 }
 
-// Fire ...
+// Fire redacts values associated with keys defined in the RedactionList
 func (h *Hook) Fire(e *logrus.Entry) error {
-	e.Message = "[REDACTED]"
+	for _, redactionKey := range h.RedactionList {
+		re, err := regexp.Compile(redactionKey)
+		if err != nil {
+			return err
+		}
+		for k, v := range e.Data {
+			if re.MatchString(k) {
+				e.Data[k] = "[REDACTED]"
+				continue
+			}
+
+			switch reflect.TypeOf(v).Kind() {
+			case reflect.String:
+				e.Data[k] = re.ReplaceAllString(v.(string), "$1[REDACTED]$2")
+				continue
+			}
+		}
+	}
 	return nil
 }
