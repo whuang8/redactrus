@@ -41,6 +41,7 @@ func (h *Hook) Fire(e *logrus.Entry) error {
 		if err != nil {
 			return err
 		}
+
 		for k, v := range e.Data {
 			if re.MatchString(k) {
 				e.Data[k] = "[REDACTED]"
@@ -53,6 +54,9 @@ func (h *Hook) Fire(e *logrus.Entry) error {
 				continue
 			}
 		}
+
+		// Redact any matching text in the logrus entry's Message attribute
+		e.Message = re.ReplaceAllString(e.Message, "$1[REDACTED]$2")
 	}
 	return nil
 }

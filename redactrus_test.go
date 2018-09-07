@@ -134,5 +134,15 @@ func TestFire(t *testing.T) {
 		}
 		t.Run(test.name, fn)
 	}
+}
 
+func TestEntryMessage(t *testing.T) {
+	logEntry := &logrus.Entry{
+		Message: "This is a redact me message",
+	}
+	h = &Hook{RedactionList: []string{`redact me`}}
+	err := h.Fire(logEntry)
+
+	assert.Nil(t, err)
+	assert.Equal(t, "This is a [REDACTED] message", logEntry.Message)
 }
