@@ -34,25 +34,33 @@ func LevelThreshold(l logrus.Level) []logrus.Level {
 	return logrus.AllLevels[:l+1]
 }
 
-// Fire redacts values associated with keys defined in the RedactionList
+// Fire redacts values in an log Entry that match
+// with keys defined in the RedactionList
 func (h *Hook) Fire(e *logrus.Entry) error {
 	for _, redactionKey := range h.RedactionList {
 		re, err := regexp.Compile(redactionKey)
 		if err != nil {
 			return err
 		}
+
+		// Redact based on key matching in Data fields
 		for k, v := range e.Data {
 			if re.MatchString(k) {
 				e.Data[k] = "[REDACTED]"
 				continue
 			}
 
+			// Redact based on value matching in Data fields
 			switch reflect.TypeOf(v).Kind() {
 			case reflect.String:
 				e.Data[k] = re.ReplaceAllString(v.(string), "$1[REDACTED]$2")
 				continue
 			}
 		}
+
+		// Redact based on text matching in the Message field
+		e.Message = re.ReplaceAllString(e.Message, "$1[REDACTED]$2")
 	}
+
 	return nil
 }

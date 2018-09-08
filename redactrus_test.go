@@ -1,7 +1,6 @@
 package redactrus
 
 import (
-	"regexp"
 	"testing"
 
 	"github.com/sirupsen/logrus"
@@ -77,62 +76,66 @@ func TestLevelThreshold(t *testing.T) {
 	}
 }
 
-type fireTest struct {
-	name           string
-	redactionList  []string
-	logEntry       *logrus.Entry
-	logFields      logrus.Fields
-	logDescription string
-	expectErr      bool // set to true when an error is expected from Fire()
-	description    string
+func TestInvalidRegex(t *testing.T) {
+	e := &logrus.Entry{}
+	h = &Hook{RedactionList: []string{"\\"}}
+	err := h.Fire(e)
+
+	assert.NotNil(t, err)
 }
 
-func TestFire(t *testing.T) {
-	tests := []fireTest{
+type EntryDataValuesTest struct {
+	name          string
+	redactionList []string
+	logFields     logrus.Fields
+	expected      logrus.Fields
+	description   string
+}
+
+// Test that any occurence of a redaction pattern
+// in the values of the entry's data fields is redacted.
+func TestEntryDataValues(t *testing.T) {
+	tests := []EntryDataValuesTest{
 		{
-			name:          "invalidRegex",
-			redactionList: []string{"\\"},
-			logEntry:      &logrus.Entry{},
-			expectErr:     true,
-			description:   "Fire() was expected to return an error but did not.",
+			name:          "match on key",
+			redactionList: []string{"Password"},
+			logFields:     logrus.Fields{"Password": "password123!"},
+			expected:      logrus.Fields{"Password": "[REDACTED]"},
+			description:   "Password value should have been redacted, but was not.",
 		},
 		{
-			name:          "redactWithKey",
-			redactionList: []string{"secretKey"},
-			logEntry: &logrus.Entry{
-				Data: logrus.Fields{
-					"secretKey": "secret!",
-				},
-			},
-			expectErr:   false,
-			description: "secretKey was expected to be redacted but was not.",
+			name:          "string value",
+			redactionList: []string{"William"},
+			logFields:     logrus.Fields{"Description": "His name is William"},
+			expected:      logrus.Fields{"Description": "His name is [REDACTED]"},
+			description:   "William should have been redacted, but was not.",
 		},
 	}
 
 	for _, test := range tests {
 		fn := func(t *testing.T) {
-			e := test.logEntry
+			logEntry := &logrus.Entry{
+				Data: test.logFields,
+			}
 			h = &Hook{RedactionList: test.redactionList}
-			err := h.Fire(e)
+			err := h.Fire(logEntry)
 
-			if test.expectErr {
-				assert.NotNil(t, err, test.description)
-				return
-			}
-
-			// Test all key:val pairs in the logrus Entry. Any value in which
-			// the key matches a string in the redaction list should be redacted.
-			for k, v := range e.Data {
-				for _, s := range test.redactionList {
-					re := regexp.MustCompile(s)
-					if re.MatchString(k) {
-						assert.Equal(t, "[REDACTED]", v, test.description)
-					}
-				}
-			}
-
+			assert.Nil(t, err)
+			assert.Equal(t, test.expected, logEntry.Data)
 		}
 		t.Run(test.name, fn)
 	}
+}
 
+// Test that any occurence of a redaction pattern
+// in the entry's Message field is redacted.
+func TestEntryMessage(t *testing.T) {
+	logEntry := &logrus.Entry{
+		Message: "Secret Password: password123!",
+	}
+	h = &Hook{RedactionList: []string{`(Password: ).*`}}
+	err := h.Fire(logEntry)
+
+	assert.Nil(t, err)
+	assert.Equal(t, "Secret Password: [REDACTED]", logEntry.Message)
 }
