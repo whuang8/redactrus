@@ -2,7 +2,7 @@
 
 Redactrus is a [Logrus hook](https://github.com/sirupsen/logrus#hooks) that redacts specified text from your logs.
 
-Easy redaction of log data:
+Easy redaction of your logs:
 
 ![Redacted](https://i.imgur.com/7bWHxKq.png)
 
