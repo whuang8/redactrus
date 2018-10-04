@@ -62,7 +62,7 @@ log.WithFields(log.Fields{
 }).Info("Bah bah bah bird bird bird")
 ```
 
-![explicit1](https://i.imgur.com/nLPFBAt.png)
+![explicit1](https://i.imgur.com/l9LWexu.png)
 
 Redactrus will also redact any occurrences of the word in the log entry’s message, as well as the values in the log entry’s data fields.
 
