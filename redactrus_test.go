@@ -139,3 +139,15 @@ func TestEntryMessage(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "Secret Password: [REDACTED]", logEntry.Message)
 }
+
+// Logrus fields can have a nil value so test we handle this edge case
+func TestNilField(t *testing.T) {
+	logEntry := &logrus.Entry{
+		Data: logrus.Fields{"Nil": nil},
+	}
+	h = &Hook{RedactionList: []string{"foo"}}
+	err := h.Fire(logEntry)
+
+	assert.Nil(t, err)
+	assert.Equal(t, logrus.Fields{"Nil": nil}, logEntry.Data)
+}

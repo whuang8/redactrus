@@ -50,6 +50,11 @@ func (h *Hook) Fire(e *logrus.Entry) error {
 				continue
 			}
 
+			// Logrus Field values can be nil
+			if v == nil {
+				continue
+			}
+
 			// Redact based on value matching in Data fields
 			switch reflect.TypeOf(v).Kind() {
 			case reflect.String:
