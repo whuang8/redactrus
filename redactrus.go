@@ -1,6 +1,7 @@
 package redactrus
 
 import (
+	"fmt"
 	"reflect"
 	"regexp"
 
@@ -56,9 +57,20 @@ func (h *Hook) Fire(e *logrus.Entry) error {
 			}
 
 			// Redact based on value matching in Data fields
+			// Handle fmt.Stringer type
+			if vv, ok := v.(fmt.Stringer); ok {
+				e.Data[k] = re.ReplaceAllString(vv.String(), "$1[REDACTED]$2")
+				continue
+			}
+
 			switch reflect.TypeOf(v).Kind() {
 			case reflect.String:
-				e.Data[k] = re.ReplaceAllString(v.(string), "$1[REDACTED]$2")
+				switch vv := v.(type) {
+				case string:
+					e.Data[k] = re.ReplaceAllString(vv, "$1[REDACTED]$2")
+				default:
+					e.Data[k] = re.ReplaceAllString(fmt.Sprint(v), "$1[REDACTED]$2")
+				}
 				continue
 			}
 		}

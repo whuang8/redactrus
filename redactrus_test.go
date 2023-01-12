@@ -151,3 +151,17 @@ func TestNilField(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, logrus.Fields{"Nil": nil}, logEntry.Data)
 }
+
+type TypedString string
+
+// Logrus fields can have re-typed strings so test we handle this edge case
+func TestTypedStringValue(t *testing.T) {
+	logEntry := &logrus.Entry{
+		Data: logrus.Fields{"TypedString": TypedString("kind is string")},
+	}
+	h = &Hook{RedactionList: []string{"foo"}}
+	err := h.Fire(logEntry)
+
+	assert.Nil(t, err)
+	assert.Equal(t, logrus.Fields{"TypedString": "kind is string"}, logEntry.Data)
+}
