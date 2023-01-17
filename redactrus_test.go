@@ -159,9 +159,9 @@ func TestTypedStringValue(t *testing.T) {
 	logEntry := &logrus.Entry{
 		Data: logrus.Fields{"TypedString": TypedString("kind is string")},
 	}
-	h = &Hook{RedactionList: []string{"foo"}}
+	h = &Hook{RedactionList: []string{"kind"}}
 	err := h.Fire(logEntry)
 
 	assert.Nil(t, err)
-	assert.Equal(t, logrus.Fields{"TypedString": "kind is string"}, logEntry.Data)
+	assert.Equal(t, logrus.Fields{"TypedString": "[REDACTED] is string"}, logEntry.Data)
 }
