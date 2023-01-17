@@ -162,13 +162,13 @@ func (v stringerValue) String() string {
 
 func TestStringer(t *testing.T) {
 	logEntry := &logrus.Entry{
-		Data: logrus.Fields{"Stringer": stringerValue{"kind is io.Stringer"}},
+		Data: logrus.Fields{"Stringer": stringerValue{"kind is fmt.Stringer"}},
 	}
 	h = &Hook{RedactionList: []string{"kind"}}
 	err := h.Fire(logEntry)
 
 	assert.Nil(t, err)
-	assert.Equal(t, logrus.Fields{"Stringer": "[REDACTED] is io.Stringer"}, logEntry.Data)
+	assert.Equal(t, logrus.Fields{"Stringer": "[REDACTED] is fmt.Stringer"}, logEntry.Data)
 }
 
 type TypedString string
