@@ -151,3 +151,36 @@ func TestNilField(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, logrus.Fields{"Nil": nil}, logEntry.Data)
 }
+
+type stringerValue struct {
+	value string
+}
+
+func (v stringerValue) String() string {
+	return v.value
+}
+
+func TestStringer(t *testing.T) {
+	logEntry := &logrus.Entry{
+		Data: logrus.Fields{"Stringer": stringerValue{"kind is fmt.Stringer"}},
+	}
+	h = &Hook{RedactionList: []string{"kind"}}
+	err := h.Fire(logEntry)
+
+	assert.Nil(t, err)
+	assert.Equal(t, logrus.Fields{"Stringer": "[REDACTED] is fmt.Stringer"}, logEntry.Data)
+}
+
+type TypedString string
+
+// Logrus fields can have re-typed strings so test we handle this edge case
+func TestTypedStringValue(t *testing.T) {
+	logEntry := &logrus.Entry{
+		Data: logrus.Fields{"TypedString": TypedString("kind is string")},
+	}
+	h = &Hook{RedactionList: []string{"kind"}}
+	err := h.Fire(logEntry)
+
+	assert.Nil(t, err)
+	assert.Equal(t, logrus.Fields{"TypedString": "[REDACTED] is string"}, logEntry.Data)
+}
