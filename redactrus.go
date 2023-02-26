@@ -52,7 +52,8 @@ func (h *Hook) Fire(e *logrus.Entry) error {
 			}
 
 			// Logrus Field values can be nil
-			if v == nil {
+			if v == nil || reflect.ValueOf(v).IsNil() {
+				fmt.Println("is nil")
 				continue
 			}
 

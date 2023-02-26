@@ -179,7 +179,9 @@ func (s S) String() string {
 	return s.v
 }
 
-func TestNilPointer(t *testing.T) {
+func TestNilPointerWithValReceiver(t *testing.T) {
+	// TODO: need to add a test case with nil + non-nil values on the same
+	// struct type to catch why .IsNil() doesn't work
 	var tp *S
 	logEntry := &logrus.Entry{
 		Data: logrus.Fields{"NilTime": tp},
