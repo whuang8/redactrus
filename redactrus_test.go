@@ -171,6 +171,25 @@ func TestStringer(t *testing.T) {
 	assert.Equal(t, logrus.Fields{"Stringer": "[REDACTED] is fmt.Stringer"}, logEntry.Data)
 }
 
+type S struct {
+	v string
+}
+
+func (s S) String() string {
+	return s.v
+}
+
+func TestNilPointer(t *testing.T) {
+	var tp *S
+	logEntry := &logrus.Entry{
+		Data: logrus.Fields{"NilTime": tp},
+	}
+	h = &Hook{RedactionList: []string{"foo"}}
+	err := h.Fire(logEntry)
+
+	assert.Nil(t, err)
+}
+
 type TypedString string
 
 // Logrus fields can have re-typed strings so test we handle this edge case
