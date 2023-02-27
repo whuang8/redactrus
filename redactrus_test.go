@@ -180,11 +180,9 @@ func (s S) String() string {
 }
 
 func TestNilPointerWithValReceiver(t *testing.T) {
-	// TODO: need to add a test case with nil + non-nil values on the same
-	// struct type to catch why .IsNil() doesn't work
-	var tp *S
+	var s *S
 	logEntry := &logrus.Entry{
-		Data: logrus.Fields{"NilTime": tp},
+		Data: logrus.Fields{"nil-stringer": s},
 	}
 	h = &Hook{RedactionList: []string{"foo"}}
 	err := h.Fire(logEntry)

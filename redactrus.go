@@ -52,18 +52,11 @@ func (h *Hook) Fire(e *logrus.Entry) error {
 			}
 
 			// Logrus Field values can be nil
-			if v == nil || reflect.ValueOf(v).IsNil() {
-				fmt.Println("is nil")
+			if v == nil {
 				continue
 			}
 
 			// Redact based on value matching in Data fields
-			// Handle fmt.Stringer type
-			if vv, ok := v.(fmt.Stringer); ok {
-				e.Data[k] = re.ReplaceAllString(vv.String(), "$1[REDACTED]$2")
-				continue
-			}
-
 			switch reflect.TypeOf(v).Kind() {
 			case reflect.String:
 				switch vv := v.(type) {
@@ -73,7 +66,19 @@ func (h *Hook) Fire(e *logrus.Entry) error {
 					e.Data[k] = re.ReplaceAllString(fmt.Sprint(v), "$1[REDACTED]$2")
 				}
 				continue
+			// prevent nil *fmt.Stringer from reaching handler below
+			case reflect.Ptr:
+				if reflect.ValueOf(v).IsNil() {
+					continue
+				}
 			}
+
+			// Handle fmt.Stringer type.
+			if vv, ok := v.(fmt.Stringer); ok {
+				e.Data[k] = re.ReplaceAllString(vv.String(), "$1[REDACTED]$2")
+				continue
+			}
+
 		}
 
 		// Redact based on text matching in the Message field
