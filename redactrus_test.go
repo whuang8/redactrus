@@ -175,7 +175,13 @@ func TestStringer(t *testing.T) {
 		Data: logrus.Fields{"Stringer": s},
 	}
 	err = h.Fire(nilStringerEntry)
-
+	assert.Nil(t, err)
+ 
+	var stringer fmt.Stringer
+	nilStringerEntry = &logrus.Entry{
+		Data: logrus.Fields{"Stringer": stringer},
+	}
+	err = h.Fire(nilStringerEntry)
 	assert.Nil(t, err)
 }
 
