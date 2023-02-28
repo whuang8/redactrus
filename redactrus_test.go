@@ -2,6 +2,7 @@ package redactrus
 
 import (
 	"testing"
+	"fmt"
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -169,6 +170,20 @@ func TestStringer(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, logrus.Fields{"Stringer": "[REDACTED] is fmt.Stringer"}, logEntry.Data)
+
+	var s *stringerValue
+	nilStringerEntry := &logrus.Entry{
+		Data: logrus.Fields{"Stringer": s},
+	}
+	err = h.Fire(nilStringerEntry)
+	assert.Nil(t, err)
+ 
+	var stringer fmt.Stringer
+	nilStringerEntry = &logrus.Entry{
+		Data: logrus.Fields{"Stringer": stringer},
+	}
+	err = h.Fire(nilStringerEntry)
+	assert.Nil(t, err)
 }
 
 type TypedString string
